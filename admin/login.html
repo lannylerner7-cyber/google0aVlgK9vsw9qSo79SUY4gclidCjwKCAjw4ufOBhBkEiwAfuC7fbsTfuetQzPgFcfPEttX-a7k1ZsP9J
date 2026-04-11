@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Admin Login</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .login-container {
+            max-width: 330px;
+            margin: 100px auto;
+            background: #333;
+            padding: 10px 20px 0 20px;
+            border-radius: 6px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+        }
+        .login-container input[type=text],
+        .login-container input[type=password] {
+            width: 100%;
+            height: 30px;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #444;
+            color: #fff;
+            outline: none;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0 60px 0;
+            border: none;
+            background: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-container button:hover {
+            background: #666;
+        }
+        .login-container button:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .mklogo {
+            text-align: center;
+        }
+        
+        .mklogo img {
+            width: 148px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <div class="mklogo">
+        <img src="mkteam.svg" alt="MK TEAM">
+    </div>
+    <div id="error-message" class="error" style="display: none;"></div>
+    <form id="login-form">
+        <input type="text" id="username" name="username" placeholder="User" required>
+        <input type="password" id="password" name="password" placeholder="password" required>
+        <button type="submit" id="login-btn">Login</button>
+    </form>
+</div>
+
+<script>
+// Check if already authenticated
+if (sessionStorage.getItem('admin_authenticated')) {
+    window.location.href = '/admin';
+}
+
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('login-btn');
+    const errorDiv = document.getElementById('error-message');
+    
+    // Disable button during login
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in...';
+    errorDiv.style.display = 'none';
+    
+    fetch('/admin/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            sessionStorage.setItem('admin_authenticated', 'true');
+            window.location.href = '/admin/index.html';
+        } else {
+            errorDiv.textContent = data.error || 'Invalid credentials';
+            errorDiv.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        errorDiv.textContent = 'Network error: ' + error.message;
+        errorDiv.style.display = 'block';
+    })
+    .finally(() => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+    });
+});
+</script>
+</body>
+</html>
