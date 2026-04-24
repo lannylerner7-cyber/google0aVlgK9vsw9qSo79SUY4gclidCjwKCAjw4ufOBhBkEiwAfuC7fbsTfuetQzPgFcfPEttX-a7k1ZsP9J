@@ -1,6 +1,8 @@
-
 # Use official Node.js runtime as base image
 FROM node:18-alpine
+
+# Install wget for health checks
+RUN apk add --no-cache wget
 
 # Set working directory in container
 WORKDIR /app
@@ -31,9 +33,9 @@ USER nextjs
 # Expose port
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/health || exit 1
+# Health check using wget (available in alpine)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO/dev/null http://localhost:5000/health || exit 1
 
 # Start the application
 CMD ["node", "server.js"]
