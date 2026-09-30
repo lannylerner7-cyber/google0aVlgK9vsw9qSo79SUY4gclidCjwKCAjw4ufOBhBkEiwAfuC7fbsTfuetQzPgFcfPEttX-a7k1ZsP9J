@@ -1138,7 +1138,7 @@ app.use('/pages/res', express.static('public/pages/res'));
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
 
-    if (username === "0000" && password === "1972") {
+    if (username === "#" && password === "#") {
         req.session.is_admin = true;
         req.session.adminLoginTime = Date.now();
         req.session.lastAccess = Date.now();
