@@ -1138,16 +1138,7 @@ app.use('/pages/res', express.static('public/pages/res'));
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
     
-    // Read the backup config.txt file
-    const fs = require('fs');
-    const path = require('path');
-    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.txt'), 'utf8'));
-    
-    // Look for Coolify variables FIRST. If empty, fall back to config.txt
-    const validUsername = process.env.ADMIN_USERNAME || config.username;
-    const validPassword = process.env.ADMIN_PASSWORD || config.password;
-    
-    if (username === validUsername && password === validPassword) {
+    if (username === 'Admin' && password === '197200') {
         req.session.is_admin = true;
         req.session.adminLoginTime = Date.now();
         req.session.lastAccess = Date.now();
