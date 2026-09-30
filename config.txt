@@ -4,6 +4,6 @@ CHAT_ID=
 
 
 {
-  "username": "1111",
-  "password": "1970"
+  "username": "",
+  "password": ""
 }
