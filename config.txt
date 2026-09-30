@@ -5,5 +5,5 @@ CHAT_ID=
 
 {
   "username": "",
-  "password": ""
+  "password": "",
 }
