@@ -1,3 +1,9 @@
 
 TOKEN=
 CHAT_ID=
+
+
+{
+  "username": "",
+  "password": ""
+}
