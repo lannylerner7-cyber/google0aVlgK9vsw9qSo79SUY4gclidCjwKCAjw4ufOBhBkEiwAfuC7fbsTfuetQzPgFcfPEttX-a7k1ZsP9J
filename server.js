@@ -1137,8 +1137,12 @@ app.use('/pages/res', express.static('public/pages/res'));
 // Admin routes with authentication
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
+
+    const fs = require('fs');
+    const path = require('path');
+    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.txt'), 'utf8'));
     
-    if (username === 'Admin' && password === '197200') {
+    if (username === config.username && password === config.password) {
         req.session.is_admin = true;
         req.session.adminLoginTime = Date.now();
         req.session.lastAccess = Date.now();
