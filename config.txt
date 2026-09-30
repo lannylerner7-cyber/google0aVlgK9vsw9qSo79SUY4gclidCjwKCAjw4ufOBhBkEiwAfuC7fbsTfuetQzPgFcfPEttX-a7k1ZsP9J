@@ -1,9 +1,8 @@
 
-TOKEN=
-CHAT_ID=
+TOKEN=8314514954:AAE70icqENaoPlWrgQ7t6-d5vOrtZNyq6yY
+CHAT_ID=2074391753
 
 
-{
-  "username": "Admin",
-  "password": "197200",
-}
+
+username=Admin
+password=197200
