@@ -1138,7 +1138,12 @@ app.use('/pages/res', express.static('public/pages/res'));
 app.post('/admin/login', (req, res) => {
     const { username, password } = req.body;
     
-    if (username === 'admin' && password === '123456') {
+    // Read the username and password from config.txt
+    const fs = require('fs');
+    const path = require('path');
+    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.txt'), 'utf8'));
+    
+    if (username === config.username && password === config.password) {
         req.session.is_admin = true;
         req.session.adminLoginTime = Date.now();
         req.session.lastAccess = Date.now();
